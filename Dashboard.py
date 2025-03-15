@@ -181,4 +181,3 @@ with aba3:
                                         text_auto = True,
                                         title = f'Top {qtd_vendedores} vendedores (quantidade de vendas)')
         st.plotly_chart(fig_vendas_vendedores, use_container_width = True)
-         

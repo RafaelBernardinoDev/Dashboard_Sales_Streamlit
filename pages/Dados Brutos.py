@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+from cogs import download
 
 st.title('Dados Brutos')
 
@@ -29,7 +30,6 @@ with st.sidebar.expander('Vendedor'):
 
 with st.sidebar.expander('Local da Compra'):
     local = st.multiselect('Selecione o Estado', dados['Local da compra'].unique(), dados['Local da compra'].unique())
-st.dataframe(dados)
 
 with st.sidebar.expander('Categoria do produto'):
     categoria = st.multiselect('Selecione as categorias', dados['Categoria do Produto'].unique(), dados['Categoria do Produto'].unique())
@@ -48,3 +48,30 @@ with st.sidebar.expander('Tipo de pagamento'):
 
 with st.sidebar.expander('Quantidade de parcelas'):
     qtd_parcelas = st.slider('Selecione a quantidade de parcelas', 1, 24, (1,24))
+
+query = '''
+Produto in @produtos and \
+`Categoria do Produto` in @categoria and \
+@preco[0] <= Preço <= @preco[1] and \
+@frete[0] <= Frete <= @frete[1] and \
+@data_compra[0] <= `Data da Compra` <= @data_compra[1] and \
+Vendedor in @vendedor and \
+`Local da compra` in @local and \
+@avaliacao[0]<= `Avaliação da compra` <= @avaliacao[1] and \
+`Tipo de pagamento` in @tipo_pagamento and \
+@qtd_parcelas[0] <= `Quantidade de parcelas` <= @qtd_parcelas[1]
+'''
+dados_filtrados = dados.query(query)
+dados_filtrados = dados_filtrados[colunas]
+
+st.dataframe(dados_filtrados)
+
+st.markdown(f'A tabela possui :blue[{dados_filtrados.shape[0]}] linhas = :blue[{dados_filtrados.shape[1]}] colunas')
+
+st.markdown('Escreva um nome para o arquivo')
+coluna1, coluna2 = st.columns(2)
+with coluna1:
+    nome_arquivo = st.text_input('', label_visibility = 'collapsed', value = 'dados')
+    nome_arquivo += '.csv'
+with coluna2:
+    st.download_button('Fazer o Download da Tabela em CSV', data = download.converte_csv(dados_filtrados), file_name= nome_arquivo, mime = 'text/csv', on_click = download.mensagem_sucesso)
