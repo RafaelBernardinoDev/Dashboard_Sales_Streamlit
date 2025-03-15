@@ -7,7 +7,19 @@ st.title('Dados Brutos')
 
 url = 'https://labdados.com/produtos'
 
-reponse = requests.get(url)
+response = requests.get(url)
+
+# Tratamento de erro da API 
+if response.status_code != 200:
+    st.error(f'Erro ao buscar os dados: {response.status_code}')
+    st.stop()
+try:
+    dados = pd.DataFrame.from_dict(response.json())
+
+except requests.exceptions.JSONDecodeError:
+    st.error('Erro ao decodificar a resposta JSON. A API pode estar fora do ar')
+    st.stop()
+
 dados = pd.DataFrame.from_dict(reponse.json())
 dados['Data da Compra'] = pd.to_datetime(dados['Data da Compra'], format = '%d/%m/%Y')
 

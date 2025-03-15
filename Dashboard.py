@@ -31,7 +31,18 @@ else:
 query_string = {'regiao':regiao.lower(), 'ano': ano}
 
 response = requests.get(url,params = query_string)
-dados = pd.DataFrame.from_dict(response.json())
+
+# Tratamento de erro da API 
+if response.status_code != 200:
+    st.error(f'Erro ao buscar os dados: {response.status_code}')
+    st.stop()
+try:
+    dados = pd.DataFrame.from_dict(response.json())
+
+except requests.exceptions.JSONDecodeError:
+    st.error('Erro ao decodificar a resposta JSON. A API pode estar fora do ar')
+    st.stop()
+
 dados['Data da Compra'] = pd.to_datetime(dados['Data da Compra'], format = '%d/%m/%Y')
 
 filtro_vendedores = st.sidebar.multiselect('Vendedores', dados['Vendedor'].unique())
